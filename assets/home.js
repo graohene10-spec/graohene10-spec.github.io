@@ -10,6 +10,7 @@
     let active=sections[0];
     const marker=Math.max(130,window.innerHeight*.3);
     sections.forEach(section=>{if(section.getBoundingClientRect().top<=marker)active=section;});
+    if(sections.length && scrollY+innerHeight>=document.documentElement.scrollHeight-3)active=sections[sections.length-1];
     if(active)setActive(active.id);
   }
   let framePending=false;
