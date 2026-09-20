@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101419">
+  <title>月相实验室 · 看见光的形状</title>
+  <meta name="description" content="拖动时间与月球位置，探索29.53天月相周期。同步对照日地月几何关系与地球视角，理解月亮为什么有阴晴圆缺。">
+  <link rel="canonical" href="https://graohene10-spec.github.io/projects/moon-phase/">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23101419'/%3E%3Ccircle cx='16' cy='16' r='10' fill='%23e3bc75'/%3E%3Cpath d='M16 6a10 10 0 000 20 16 16 0 010-20' fill='%232b3038'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="optics.css">
+  <script src="model.js" defer></script><script src="optics.js" defer></script><script src="app.js" defer></script>
+</head>
+<body>
+  <div class="project-homebar"><a href="../../" aria-label="返回 Kerf 个人主页">← <strong>Kerf<span>.</span></strong><span class="homebar-divider">/</span>返回主页</a><span>项目 01 · 月相实验室</span></div>
+  <header class="masthead"><a class="brand" href="#" aria-label="月相实验室首页"><span class="brand-mark">◐</span><span>月相实验室 <small>LUNAR LAB</small></span></a><span class="header-note">一束光，一个月的阴晴圆缺</span><a class="principle-link" href="#principle">理解月相 <span aria-hidden="true">↗</span></a></header>
+  <main>
+    <section class="intro"><div><div class="eyebrow">交互天文 · 01</div><h1>月亮，为什么会变形？</h1><p>移动月球，看见光照、位置与月相之间的关系。</p></div><div class="cycle-info"><strong>29.53</strong><span>天 / 一个朔望月</span></div></section>
+    <section class="experiment" aria-label="月相交互实验">
+      <div class="views">
+        <section class="orbit-panel" aria-labelledby="orbit-heading">
+          <div class="panel-head"><h2 id="orbit-heading"><span class="number">01</span> 从太空看</h2><span class="view-tag">北侧俯视</span></div>
+          <svg id="orbit" viewBox="0 0 660 430" role="img" aria-labelledby="orbit-title orbit-desc">
+            <title id="orbit-title">日地月相对位置</title><desc id="orbit-desc">太阳在左侧，地球在中央，月球沿圆轨道运动。拖动月球或使用下方时间滑块。</desc>
+            <defs>
+              <linearGradient id="sunFade"><stop stop-color="#e7bd73" stop-opacity=".7"/><stop offset="1" stop-color="#e7bd73" stop-opacity=".06"/></linearGradient>
+              <radialGradient id="earthGlow"><stop stop-color="#71bad1" stop-opacity=".15"/><stop offset="1" stop-color="#71bad1" stop-opacity="0"/></radialGradient>
+              <linearGradient id="earthFill"><stop stop-color="#86b4c4"/><stop offset=".48" stop-color="#4c8094"/><stop offset=".5" stop-color="#23313c"/><stop offset="1" stop-color="#182129"/></linearGradient>
+              <linearGradient id="moonFill"><stop stop-color="#eee4cf"/><stop offset=".499" stop-color="#d1c7b4"/><stop offset=".5" stop-color="#343942"/><stop offset="1" stop-color="#242a32"/></linearGradient>
+              <marker id="arrowGold" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0 0 6 3 0 6" fill="none" stroke="#dab67c"/></marker>
+              <marker id="arrowBlue" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 7 3.5 0 7" fill="none" stroke="#82bbcf"/></marker>
+            </defs>
+            <g id="ambient-rays" stroke="url(#sunFade)" stroke-width="1"><path d="M18 94H633 M18 153H633 M18 212H633 M18 271H633 M18 330H633"/><path d="m69 91 6 3-6 3m0 53 6 3-6 3m0 53 6 3-6 3m0 53 6 3-6 3m0 53 6 3-6 3" stroke="#bd965e"/></g>
+            <text x="23" y="61" class="sun-label">太阳光</text><text x="23" y="81" class="diagram-small">从左侧照来 →</text>
+            <circle cx="357" cy="212" r="146" class="orbit-track"/>
+            <g id="orbit-dots"></g>
+            <path d="M441 91a146 146 0 0 0-26-15" fill="none" stroke="#56616c" marker-end="url(#arrowBlue)"/>
+            <circle cx="357" cy="212" r="69" fill="url(#earthGlow)"/>
+            <g id="geometry-layer"><path id="sight-wedge" fill="#82bbcf" opacity=".07"/><line id="sight-line" stroke="#82bbcf" stroke-width="1.4" stroke-dasharray="5 5"/><path id="angle-arc" fill="none" stroke="#e0bc7c" stroke-width="1.5"/><text id="angle-label" class="angle-label"></text><line id="solar-ray" stroke="#d9b675" stroke-width="1.6" marker-end="url(#arrowGold)"/></g>
+            <circle cx="357" cy="212" r="28" fill="url(#earthFill)" stroke="#92bbca" stroke-opacity=".3"/>
+            <ellipse cx="357" cy="212" rx="13" ry="28" fill="none" stroke="#bcd8e0" stroke-opacity=".17"/><path d="M330 212h54M334 199h46M334 225h46" stroke="#bcd8e0" stroke-opacity=".12"/>
+            <text x="357" y="260" text-anchor="middle" class="earth-label">地球</text>
+            <g id="moon-position"><circle r="31" fill="transparent"/><circle r="23" fill="none" stroke="#e5bd79" stroke-opacity=".35"/><circle r="16" fill="url(#moonFill)" stroke="#e8d2ad" stroke-opacity=".55"/><circle id="observer-dot" r="3" fill="#88bfd0"/><text y="-36" text-anchor="middle" class="moon-label">月球</text></g>
+            <text x="357" y="401" text-anchor="middle" class="diagram-small">拖动月球，或点击轨道上的任意位置</text>
+          </svg>
+          <div class="orbit-footer"><div class="legend"><span><i class="gold"></i>太阳光</span><span><i class="blue"></i>地球视线</span></div><label class="toggle"><input id="geometry-toggle" type="checkbox" checked><span class="switch"></span>辅助线</label></div>
+        </section>
+        <section class="moon-panel" aria-labelledby="moon-heading">
+          <div class="panel-head"><h2 id="moon-heading"><span class="number">02</span> 从地球看</h2><select id="hemisphere" aria-label="选择月面显示方向"><option value="north">北半球示意</option><option value="south">南半球示意</option></select></div>
+          <div class="moon-stage"><div class="moon-orbit-ring"></div><canvas id="moon-canvas" width="400" height="400" role="img" aria-label="当前从地球看到的月相"></canvas><span class="moon-stage-label">月面投影</span><div id="terminator-label" class="terminator-label">明暗交界线</div></div>
+          <div class="phase-summary"><div><span id="phase-en" class="eyebrow">WAXING CRESCENT</span><h3 id="phase-name">娥眉月</h3></div><div class="illumination"><strong id="illumination">25.0<span>%</span></strong><span>可见月盘受光面积</span></div></div>
+          <p id="phase-description" class="phase-description">月球正在远离太阳的视方向，右侧亮面逐渐增加。</p>
+        </section>
+      </div>
+      <section class="timeline" aria-label="月相时间控制">
+        <div class="timeline-top"><div class="transport"><button id="play" class="play-button" aria-label="播放月相变化"><span id="play-icon" aria-hidden="true">▶</span><span id="play-text">播放周期</span></button><button id="reset" class="reset-button" aria-label="回到新月" title="回到新月">↺</button><select id="speed" aria-label="播放速度"><option value="1">1× 速度</option><option value="2">2× 速度</option><option value="0.5">0.5× 速度</option></select></div><div class="day-readout">新月后 <output id="day-value" for="day-slider">4.92</output> <span>天</span><span class="timeline-total">/ 29.53 天</span></div></div>
+        <label class="sr-only" for="day-slider">新月后的天数</label><input id="day-slider" class="day-slider" type="range" min="0" max="29.53" step="0.001" value="4.9216666667" aria-describedby="slider-help"><div class="range-ticks"><span>0 天</span><span>7.38 天</span><span>14.77 天</span><span>22.15 天</span><span>29.53 天</span></div>
+        <div id="phase-shortcuts" class="phase-shortcuts" aria-label="跳转至典型月相"></div><p id="slider-help" class="timeline-hint">拖动时间滑块探索 · 选择月相可直接跳转 · 方向键精细调整</p>
+      </section>
+    </section>
+    <section id="principle" class="principle">
+      <div class="principle-title"><span class="eyebrow">光如何成为我们看到的形状</span><h2>同一颗月亮，两个半球的交集。</h2></div>
+      <div class="principle-grid"><article><span class="step-index">01 / 受光</span><h3>太阳照亮一半</h3><p>忽略月食时，太阳始终照亮月球朝向它的一半。左图中，无论月球在哪里，朝左的一半都受到光照。</p></article><article><span class="step-index">02 / 观察</span><h3>我们也只能看见一半</h3><p>从地球看，只能看到朝向地球的半个球面。蓝色视线标出观察方向；蓝点标出月球面向地球的一侧。</p></article><article><span class="step-index">03 / 投影</span><h3>重叠的亮面，就是月相</h3><p>受光半球与可见半球的交集，投影为月盘上的亮区。交界线本是球面上的大圆，斜着看就成了弧线。</p></article></div>
+      <details class="geometry-details" id="optics-details" open>
+        <summary><span>进一步：从光路、月盘投影到面积公式</span><span aria-hidden="true">＋</span></summary>
+        <div class="optics-lab">
+          <div class="optics-intro"><div><span class="eyebrow">几何光学 · 联动推导</span><h3>把一弯月亮，拆成一条条亮带。</h3></div><p>下面计算的是<strong>月盘亮区的投影面积</strong>。忽略月食时，实际受光的月球表面积始终约为 2πR²；随月相变化的是我们看到的亮区。</p></div>
+          <div class="optics-controls"><button id="optics-play" class="play-button" aria-label="在推导区播放月相变化">▶ 播放周期</button><label for="optics-day">新月后 <output id="optics-day-value">4.92</output> 天</label><input type="range" class="day-slider" id="optics-day" min="0" max="29.53" step="0.001" value="4.922" aria-label="推导区月相时间"><span id="optics-state">娥眉月 · 北半球示意</span></div>
+          <div class="optics-figures">
+            <figure class="optics-figure">
+              <figcaption><span class="step-index">A / 光从哪里来，又到哪里去</span><h4>太阳—月球—地球平面内的截面</h4></figcaption>
+              <svg id="light-section" class="optics-svg" viewBox="0 0 520 370" role="img" aria-labelledby="light-title light-desc"><title id="light-title">代表性入射与散射光路</title><desc id="light-desc">黄色箭头为入射太阳光，蓝色箭头为散射向地球的光。只有同时受光且朝向地球的表面点能贡献月盘亮区。</desc>
+                <defs><marker id="opt-gold-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0 0 6 3 0 6" fill="none" stroke="#e4bf80"/></marker><marker id="opt-blue-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0 0 6 3 0 6" fill="none" stroke="#82bbcf"/></marker></defs>
+                <circle cx="226" cy="190" r="82" fill="#242c36" stroke="#66717f"/>
+                <path id="section-lit-half" fill="#e4bf8030"/>
+                <path d="M226 108A82 82 0 0 1 226 272" fill="none" stroke="#82bbcf" stroke-width="3"/>
+                <path id="section-terminator" stroke="#e4bf80" stroke-dasharray="5 5" fill="none"/>
+                <path d="M226 82V288" fill="none" stroke="#768596" stroke-dasharray="3 5" opacity=".45"/>
+                <g id="section-rays"></g><g id="section-normal"></g>
+                <line x1="226" y1="190" x2="473" y2="190" stroke="#82bbcf" stroke-dasharray="4 6" marker-end="url(#opt-blue-arrow)"/>
+                <text x="476" y="211" text-anchor="end" class="opt-blue-text">v · 指向地球</text>
+                <line id="section-sun-vector" x1="226" y1="190" stroke="#e4bf80" stroke-dasharray="3 5" marker-end="url(#opt-gold-arrow)"/>
+                <text id="section-sun-label" text-anchor="middle" class="opt-gold-text">s · 指向太阳</text>
+                <path id="section-phase-arc" fill="none" stroke="#e4bf80" stroke-width="1.5"/><text id="section-alpha" class="opt-gold-text">α</text>
+                <circle cx="226" cy="190" r="3" fill="#e3e8ef"/><text x="215" y="210" class="opt-small">O</text>
+                <text x="260" y="347" text-anchor="middle" class="opt-small">青色圆弧：朝向地球的可见半球</text>
+              </svg>
+              <div class="optics-legend"><span><i class="gold"></i>入射光 → 月面</span><span><i class="blue"></i>散射光 → 地球</span><span><i class="normal-color"></i>法线 n</span></div>
+              <p id="ray-explanation">亮面上的代表性点把一部分入射光散射向地球。</p>
+              <p class="optics-fine">月面是漫反射表面，蓝线只选取朝向地球的一条出射方向，不要求与入射光满足镜面反射关系。地球方向按远场平行视线处理。</p>
+            </figure>
+            <figure class="optics-figure">
+              <figcaption><span class="step-index">B / 把可见球面投到月盘上</span><h4>亮边与明暗交界线夹出月相</h4></figcaption>
+              <svg id="disk-projection" class="optics-svg" viewBox="0 0 520 370" role="img" aria-labelledby="disk-title disk-desc"><title id="disk-title">明暗交界线的投影与亮带面积</title><desc id="disk-desc">实线是可见的明暗交界线，虚线为背面不可见的交界线。蓝色横条演示一条亮带的宽度。</desc>
+                <defs><clipPath id="projection-disk-clip"><circle cx="260" cy="180" r="120"/></clipPath><marker id="opt-neutral-arrow" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0 0 5 2.5 0 5" fill="none" stroke="#a4adba"/></marker></defs>
+                <circle cx="260" cy="180" r="120" fill="#242c36" stroke="#697481"/>
+                <path id="disk-lit-area" fill="#ddbc8080"/><path id="disk-hidden-terminator" fill="none" stroke="#a4adba" stroke-dasharray="4 5" opacity=".5"/>
+                <path id="disk-front-terminator" fill="none" stroke="#f0cd8c" stroke-width="2.4"/>
+                <line x1="260" y1="312" x2="260" y2="34" stroke="#788391" opacity=".55" marker-end="url(#opt-neutral-arrow)"/><text x="271" y="40" class="opt-small">y</text>
+                <line id="disk-u-axis" y1="180" y2="180" stroke="#788391" opacity=".55" marker-end="url(#opt-neutral-arrow)"/><text id="disk-u-label" y="172" class="opt-small">u</text>
+                <g id="disk-strip"></g>
+                <text x="249" y="198" class="opt-small">O</text><text x="276" y="286" class="opt-small">R</text>
+                <text x="260" y="347" text-anchor="middle" id="disk-shape-label" class="opt-small">交界线投影为半椭圆</text>
+              </svg>
+              <div class="slice-control"><label for="slice-height">移动横向切片 <output id="slice-value">y = 0.35R</output></label><input type="range" id="slice-height" min="-0.85" max="0.85" step="0.01" value="0.35" aria-label="横向切片高度"></div>
+              <p id="strip-readout">切片半宽 r = 0.937R，亮带宽 w = 0.469R。</p>
+              <p class="optics-fine">金色实线：可见交界线 T；灰色虚线：背面的交界线，实际看不见。蓝色条带从 T 延伸至明亮的月缘 L。</p>
+            </figure>
+          </div>
+          <section class="optics-derivation" aria-labelledby="derivation-heading">
+            <div class="derivation-heading"><h4 id="derivation-heading">从半椭圆，算出亮面比例</h4><span>当前 α = <b id="phase-angle">120.0°</b> · k = <b id="formula-k">25.0%</b></span></div>
+            <p class="coordinate-note">令月球半径为 R，z 轴指向地球，u 轴在画面中朝向明亮月缘，y 轴向上。<span id="coordinate-orientation">当前 u 向右。</span> 相位角 α 是月球处“指向太阳”与“指向地球”两条方向的夹角。</p>
+            <ol class="derivation-steps">
+              <li><h5>球面的交界线</h5><p>可见球面满足 z ≥ 0。表面法线 n 与太阳方向 s 垂直处，是昼夜分界。</p><div class="math-line">u² + y² + z² = R²</div><div class="math-line">u sin α + z cos α = 0</div><p class="optics-fine">受光条件 n · s &gt; 0；可见条件 n · v &gt; 0。边界处取等号。</p></li>
+              <li><h5>一条亮带的宽度</h5><p>在高度 y 处，月盘半宽为 r(y)。解出朝向地球的交界线分支 T，再从月缘 L 减去它。</p><div class="math-line">r(y) = √(R² − y²)</div><div class="math-line">u<sub>T</sub>(y) = −cos α · r(y)</div><div class="math-line">w(y) = r(y) − u<sub>T</sub>(y)</div><div class="math-line accent-math">= (1 + cos α) r(y)</div></li>
+              <li><h5>累加所有亮带</h5><p>将宽度乘以微小高度 dy，再从月盘底部积到顶部。√(R² − y²) 的积分是半圆面积。</p><div class="math-line integral-line">A<sub>亮</sub> = ∫<sub>−R</sub><sup>R</sup> w(y) dy</div><div class="math-line">= (1 + cos α) · πR² / 2</div><div class="math-line accent-math">k = A<sub>亮</sub> / πR² = (1 + cos α) / 2</div></li>
+            </ol>
+            <p class="ellipse-note">当 cos α ≠ 0，交界线的完整投影满足 u² / (R² cos²α) + y² / R² = 1，椭圆半轴为 R 与 R|cos α|；只有 z ≥ 0 的那一半可见。α = 90° 时退化成直线，所以弦月恰好亮一半；α = 0° 或 180° 时交界线与月缘重合，得到满月或新月。</p>
+          </section>
+          <section class="phase-curve" aria-labelledby="curve-heading">
+            <div class="curve-header"><div><span class="step-index">C / 走完一个朔望月</span><h4 id="curve-heading">月盘亮区面积怎样随时间变化？</h4></div><div class="curve-now"><span id="curve-day">4.92 天</span><strong id="curve-percent">25.0%</strong></div></div>
+            <p class="curve-equation">k(t) = [1 − cos(2πt / T)] / 2 <span>T = 29.53 天，t 从新月起算</span></p>
+            <svg id="phase-curve-svg" viewBox="0 0 900 300" role="slider" tabindex="0" aria-label="月盘亮区比例曲线，选择新月后的天数" aria-valuemin="0" aria-valuemax="29.53" aria-valuenow="4.922" aria-describedby="curve-help"><title>一整个月相周期的月盘亮区比例</title><desc>曲线从新月的0%，经过上弦月的50%，到满月的100%，再经过下弦月的50%，回到新月的0%。</desc><g id="curve-grid"></g><path id="curve-area" fill="#e4bf800c"/><path id="curve-line" fill="none" stroke="#e4bf80" stroke-width="2.5"/><g id="curve-landmarks"></g><line id="curve-cursor" stroke="#82bbcf" stroke-dasharray="4 5"/><circle id="curve-marker" r="6" fill="#e4bf80" stroke="#151a20" stroke-width="2"/></svg>
+            <p id="curve-help" class="optics-fine">点击或横向拖动曲线可选择时间，所有示意图同步更新。也可聚焦曲线后用方向键调整，Home / End 跳到周期首尾。</p>
+            <p class="optics-fine">在这里的匀速圆周模型中，cos α = −cos(2πt / T)。纵轴是投影面积比例，不是月球球面受光比例，也不是观测光度；真实轨道的非匀速运动会使时间曲线略有偏离。</p>
+          </section>
+        </div>
+      </details>
+      <aside class="model-note"><span class="note-symbol">i</span><div><strong>月相不是地球的影子。</strong> 地球遮住阳光时发生的是月食。月球轨道相对地球公转轨道倾斜约 5°，所以并非每次满月都有月食。本模型采用太阳方向固定的匀速圆周相对运动，忽略食、轨道倾角、天平动与地面视差；尺寸与距离不按比例。月面方向为南／北半球典型示意，实际倾斜还随纬度和时刻变化。暗区被轻微提亮以显示轮廓，新月实际通常不可见。</div></aside>
+    </section>
+  </main>
+  <footer><span>月相实验室 <span class="footer-dot">·</span> 从位置读懂阴晴圆缺</span><a href="https://science.nasa.gov/moon/moon-phases/" target="_blank" rel="noreferrer">科普参考：NASA Moon Phases ↗</a></footer>
+</body>
+</html>
