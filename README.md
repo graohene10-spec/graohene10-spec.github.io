@@ -2,7 +2,7 @@
 
 个人主页与交互项目合集，发布在 [graohene10-spec.github.io](https://graohene10-spec.github.io/)。
 
-首页使用浅色背景、简洁导航与响应式项目卡片。姓名为 Kerf，自我介绍按本人要求留空；项目区域已有月相实验室，并为后续项目留有位置。
+首页使用浅色背景、简洁导航与响应式项目卡片。姓名为 Kerf，自我介绍展示兴趣领域与教育经历；项目区域已有月相实验室，并为后续项目留有位置。
 
 ## 页面结构
 
@@ -19,7 +19,7 @@ projects/moon-phase/       独立月相实验室
 
 ## 修改个人介绍
 
-在 `index.html` 中查找 `id="personal-introduction"`，在该容器中加入自己的介绍段落，例如 `<p>你的自我介绍。</p>`。该区域目前保持空白，没有代写经历或身份。
+在 `index.html` 中查找 `id="personal-introduction"`。兴趣领域位于 `.bio-interests`，教育经历位于 `.bio-education`；可以直接修改对应文字，或在该容器中加入介绍段落，例如 `<p>你的自我介绍。</p>`。
 
 ## 添加项目
 
