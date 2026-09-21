@@ -9,5 +9,13 @@
     ],
     "excerpt": "黄紫雨离开合肥那年，科大东区的梧桐叶落得很慢。 她博士后出站的手续办到最后，只剩一张盖章的表。",
     "bodyFile": "xia-yu-de-ren.html"
+  },
+  {
+    "slug": "quantum-mechanics-introduction",
+    "title": "量子力学入门：从线性空间到时间演化",
+    "author": "Kerf",
+    "tags": ["物理"],
+    "excerpt": "从复线性空间与 Dirac 符号出发，讨论量子态、测量与概率，再走向薛定谔方程和时间演化。面向学过线性代数与微积分的读者。",
+    "bodyFile": "quantum-mechanics-introduction.tex"
   }
 ]

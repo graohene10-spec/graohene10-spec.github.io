@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { convertLatexArticle } from './latex-article.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const base = 'https://graohene10-spec.github.io';
@@ -37,9 +38,11 @@ export function buildSite() {
     if (!item.title || !Array.isArray(item.tags) || !item.tags.every(tag=>typeof tag==='string'&&tag.trim())) throw new Error('Article title and tags are required');
     const file=path.resolve(contentRoot,item.bodyFile);
     if(!file.startsWith(contentRoot+path.sep)) throw new Error('Article source must be inside content/');
-    const body=fs.readFileSync(file,'utf8');
+    const source=fs.readFileSync(file,'utf8');
+    const converted=file.endsWith('.tex')?convertLatexArticle(source):null;
+    const body=converted?.body ?? source;
     const plain=body.replace(/<[^>]+>/g,'').replace(/&(?:amp|quot|#39|lt|gt);/g,'x').replace(/\s/g,'');
-    const wordCount=Array.from(plain).length;
+    const wordCount=converted?.wordCount ?? Array.from(plain).length;
     return {...item,index,body,wordCount,minutes:Math.max(1,Math.ceil(wordCount/350))};
   });
   const tags=[...new Set(articles.flatMap(article=>article.tags))];

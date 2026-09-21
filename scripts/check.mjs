@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { renderArticle } from './build.mjs';
+import { convertLatexArticle } from './latex-article.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const item={slug:'current',title:'A < B & C',excerpt:'"Quoted"',tags:['数学 & 物理'],author:'Kerf',index:1,wordCount:350,minutes:1,body:'<p>Text.</p>'};
 const html=renderArticle(item,{slug:'previous',title:'Previous'},{slug:'next',title:'Next'});
@@ -29,3 +30,18 @@ for(const page of pages){
 const katexCSS=fs.readFileSync(path.join(root,'assets/vendor/katex/katex.min.css'),'utf8');
 for(const [,font] of katexCSS.matchAll(/url\(([^)]+)\)/g))assert.ok(fs.existsSync(path.join(root,'assets/vendor/katex',font.replace(/["']/g,''))),`Missing font: ${font}`);
 console.log(`Passed: article navigation, boundaries, escaping, ${links} local links, and all math fonts.`);
+for(const article of catalog.filter(a=>a.bodyFile.endsWith('.tex'))){
+ const source=fs.readFileSync(path.join(root,'content',article.bodyFile),'utf8');
+ const converted=convertLatexArticle(source);
+ const document=source.split('\\begin{document}')[1].split('\\end{document}')[0];
+ const expectedMath=(document.match(/\$/g)||[]).length/2+(document.match(/\\\[/g)||[]).length+(document.match(/\\begin\{(?:equation|align)\}/g)||[]).length;
+ assert.equal(converted.stats.mathCount,expectedMath,'Every source formula must render');
+ assert.equal(converted.stats.sections,(document.match(/\\section\{/g)||[]).length);
+ assert.equal(converted.stats.referenceCount,(document.match(/\\eqref\{/g)||[]).length);
+ const ids=[...converted.body.matchAll(/ id="([^"]+)"/g)].map(m=>m[1]);
+ assert.equal(ids.length,new Set(ids).size,'Unique section and equation anchors');
+ for(const [,target] of converted.body.matchAll(/href="#([^"]+)"/g))assert.ok(ids.includes(target),`Missing anchor ${target}`);
+ assert.ok(!converted.body.includes('katex-error'));
+ assert.match(converted.body,/本文到此只保留复合空间的基本结构/);
+ console.log(`Passed: ${article.slug}: ${JSON.stringify(converted.stats)}`);
+}

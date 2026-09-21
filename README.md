@@ -54,6 +54,10 @@ projects/moon-phase/       独立月相实验室
 
 ## 公式
 
+《量子力学入门：从线性空间到时间演化》的源文件位于 `content/quantum-mechanics-introduction.tex`，标签为“物理”。修改源文件后运行相同的生成脚本即可更新网页。LaTeX 文章在生成时完成公式排版，不依赖读者浏览器运行脚本；章节目录、公式编号和 `\eqref` 跳转自动生成，字数统计只计算正文文字。
+
+`scripts/latex-article.mjs` 支持本文使用的 `section`、`subsection`、`abstract`、`textbf`、`important`、行内公式、独立公式、`equation`、`align`、`label` 与 `eqref`，并读取数学宏定义。它不是通用 LaTeX 编译器；遇到不支持的正文命令、公式错误或无法解析的引用时，生成会报错，需先处理后发布。
+
 文章页使用本地托管的 [KaTeX 0.18.7](https://katex.org/docs/browser.html)，渲染器与字体均由本站提供。正文支持以下写法：
 
 ```html
