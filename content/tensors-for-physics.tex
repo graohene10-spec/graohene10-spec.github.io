@@ -1,0 +1,658 @@
+% !TeX program = xelatex
+% 编译：xelatex tensors_for_physics.tex （连续运行两次）
+% 使用 TeX Live / MiKTeX 自带的 Fandol 中文字体；无需额外字体文件。
+\documentclass[UTF8,11pt,a4paper,fontset=fandol]{ctexart}
+\usepackage[left=22mm,right=22mm,top=21mm,bottom=22mm,headheight=14pt,headsep=7mm]{geometry}
+\usepackage{amsmath,amssymb,mathtools,bm}
+\usepackage{tikz-cd}
+\usepackage{booktabs,tabularx,array}
+\usepackage{enumitem}
+\usepackage{needspace}
+\AddToHook{cmd/subsubsection/before}{\Needspace{18\baselineskip}}
+\usepackage{fancyhdr}
+\usepackage[hidelinks,unicode,bookmarksnumbered=true]{hyperref}
+\hypersetup{pdftitle={张量：从线性映射到指标计算},pdfsubject={面向物理系学生的张量入门},pdfauthor={}}
+\ctexset{
+ section={format=\large\bfseries,beforeskip=1.2ex plus .3ex minus .2ex,afterskip=.65ex},
+ subsection={format=\normalsize\bfseries,beforeskip=.9ex plus .2ex minus .1ex,afterskip=.4ex},
+ paragraph={format=\normalsize\bfseries,beforeskip=.6ex,afterskip=.5em}
+}
+\linespread{1.12}
+\setlength{\parskip}{.15em}
+\setlength{\parindent}{2em}
+\setlength{\abovedisplayskip}{7pt plus 2pt minus 2pt}
+\setlength{\belowdisplayskip}{7pt plus 2pt minus 2pt}
+\setlength{\abovedisplayshortskip}{4pt plus 2pt minus 1pt}
+\setlength{\belowdisplayshortskip}{5pt plus 2pt minus 1pt}
+\setlist{nosep,leftmargin=2em,topsep=3pt}
+\renewcommand{\arraystretch}{1.25}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small 张量：从线性映射到指标计算}
+\fancyhead[R]{\small 物理数学基础}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{.3pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+\numberwithin{equation}{section}
+\newcommand{\R}{\mathbb R}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\dd}{\mathrm d}
+\newcommand{\Tspace}[2]{\mathcal T^{#1}_{#2}(V)}
+\DeclareMathOperator{\Hom}{Hom}
+\DeclareMathOperator{\Bil}{Bil}
+\DeclareMathOperator{\Mult}{Mult}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\grad}{grad}
+\newcommand{\key}[1]{\par\smallskip\noindent\textbf{#1}\par\smallskip}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\setlength{\emergencystretch}{2em}
+\clubpenalty=10000
+\widowpenalty=10000
+\displaywidowpenalty=1000
+\begin{document}
+\thispagestyle{plain}
+\begin{center}
+  {\LARGE\bfseries 张量：从线性映射到指标计算\par}
+\end{center}
+
+
+\noindent\textbf{约定。}除另有说明外，$V$ 是 $d$ 维实线性空间，$m,n$ 是非负整数。$(m,n)$ 型张量由 $m$ 个 $V$ 因子和 $n$ 个 $V^*$ 因子构成，分量相应带 $m$ 个上指标、$n$ 个下指标。全文先讨论不依赖度规的结构，再引入度规。我们只考虑有限维的线性空间。
+
+
+
+\section{线性空间}
+\subsection{向量与线性空间}
+
+所谓线性空间，是一个集合 $V$，其中的元素称为\textbf{向量}，并且在这些元素之间定义了两种运算：
+\begin{itemize}
+\item 向量加法：
+\(    V\times V\longrightarrow V,
+    (u,v)\longmapsto u+v;
+   \)
+\item 数乘：
+\(    \mathbb{R}\times V\longrightarrow V,
+    \qquad
+    (\lambda,v)\longmapsto \lambda v.
+   \)
+\end{itemize}
+这里暂时只考虑实线性空间，因此标量取自 $\mathbb{R}$。
+
+这两种运算必须满足我们在线性代数中熟悉的一系列规则，例如
+\begin{align}
+u+v &= v+u,\\
+(u+v)+w &= u+(v+w),\\
+\lambda(u+v) &= \lambda u+\lambda v,\\
+(\lambda+\mu)v &= \lambda v+\mu v,\\
+(\lambda\mu)v &= \lambda(\mu v).
+\end{align}
+同时还要求存在零向量 $0\in V$ 和每个向量的加法逆元，并满足
+
+$$
+1v=v.
+$$
+
+这些条件的核心意义是：\textbf{向量可以做线性组合，而且线性组合仍然留在同一个空间中。}
+
+因此，一个对象是不是向量，并不取决于它长得像不像一根箭头，而取决于它是否属于某个具有上述线性结构的集合。例如，
+
+$$
+\mathbb{R}^3
+$$
+
+中的三元数组当然可以组成线性空间；所有次数不超过 $n$ 的多项式也组成一个线性空间；某一类函数、矩阵，甚至微分方程的解，也都可能构成线性空间。
+
+为了实际描述一个抽象的线性空间，我们通常选取一组\textbf{基}。
+
+设
+
+$$
+\{e_1,\ldots,e_d\}
+$$
+
+是 $V$ 中的 $d$ 个向量。如果它们同时满足：
+
+\begin{enumerate}
+\item \textbf{线性无关}：若
+\(    a^1e_1+\cdots+a^de_d=0,
+   \)
+则必有
+\(    a^1=\cdots=a^d=0;
+   \)
+
+\item \textbf{张成整个空间}：任意 $v\in V$ 都可以写成
+\[
+v=v^1e_1+\cdots+v^de_d,
+\]
+
+\end{enumerate}
+那么称 ${e_1,\ldots,e_d}$ 是 $V$ 的一组\textbf{基}。
+
+“线性无关”保证这些基向量之间没有冗余，而“张成整个空间”保证它们又足够描述空间中的所有向量。因此，一旦选定一组基，任意向量 $v\in V$ 都能够\textbf{唯一}写成
+\begin{equation}
+v=\sum_{i=1}^{d}v^i e_i.
+\label{eq:vexp}
+\end{equation}
+
+其中 $v$ 是向量，$e_i$ 是基向量，而 $v^i$ 是普通的实数，称为 $v$ 在这组基下的\textbf{分量}或\textbf{坐标}。
+
+于是我们经常把这些分量排列成一个列向量
+
+$$
+[v]_{\{e_i\}}
+=
+\begin{pmatrix}
+v^1\\
+\vdots\\
+v^d
+\end{pmatrix}.
+$$
+
+这个列向量是 $v$ 在特定基 ${e_i}$ 下的一组坐标。
+
+如果换成另一组基，$v$ 这个几何或代数对象并没有改变，但基向量 $e_i$ 会改变，相应的分量 $v^i$ 也会随之改变。二者的变化会恰好相互补偿，使得
+
+$$
+v=v^i e_i
+$$
+
+所表示的向量保持不变。
+
+\section{1-form与对偶空间}
+线性空间上的一个\textbf{线性函数}$T$是满足以下条件的，$V \rightarrow \mathbb{R}$（或者$\mathbb{C}$）的映射:
+\begin{align}
+    T(x+y) &= T(x)+T(y) \\
+    T(\alpha x)&= \alpha T(x)，\alpha\in F
+\end{align}
+其中$F$是我们线性空间选择的数域，比如说$\mathbb{R}$或者$\mathbb{C}$，出于简便，我们接下来默认在$\mathbb{R}$上
+
+可以证明，全部的线性函数构成了一个线性空间，比如说我们可以定义他们的加法和数乘：
+\begin{align}
+    (T_1+T_2)(x) &= T_1(x)+T_2(x) \\
+    (\alpha T)(x) &= \alpha T(x)
+\end{align}
+我们把这个空间称作$V$的\textbf{对偶空间}，记为$V^*$。
+对偶空间里的元素，称为\textbf{1-形式（1-form）}
+
+自然出现了一个从 $V^*\times V\rightarrow\mathbb{R}$ 的双线性映射，称为\textbf{自然配对}：
+\begin{equation}
+    \langle T,x\rangle=T(x).
+\end{equation}
+
+这个配对还给出了一个从 $V$ 到双对偶空间 $V^{**}=(V^*)^*$ 的自然线性映射
+\begin{equation}
+    \iota:V\longrightarrow V^{**},\qquad
+    \iota(x)(T)=T(x).
+\end{equation}
+也就是说，每个向量 $x\in V$ 都可以看成一个作用在 $V^*$ 上的线性函数：给它一个 $1$-形式 $T$，它返回实数 $T(x)$。
+
+因为本文只考虑有限维空间，$\iota$ 实际上是一个同构：
+\begin{equation}
+    V\cong V^{**}.
+\end{equation}
+这个同构不依赖于基的选择，因此称为\textbf{自然同构}。读者大致可以认为$V^*$的对偶空间是$V$（在同构的意义下）
+\section{张量积与多重线性函数}
+\textbf{多重线性函数}指的是一个有若干自变量的函数，它对每个自变量分别都是线性的。例如，对第 $i$ 个自变量有
+\begin{align}
+     T(\ldots,x_i+y_i,\ldots,x_n)
+     &=T(\ldots,x_i,\ldots,x_n)+T(\ldots,y_i,\ldots,x_n),\\
+     T(\ldots,\alpha x_i,\ldots,x_n)
+     &=\alpha T(\ldots,x_i,\ldots,x_n).
+\end{align}
+最常见的例子之一是行列式：把一个 $n\times n$ 矩阵看成由 $n$ 个列向量组成时，行列式就是关于这 $n$ 个列向量的 $n$ 重线性函数。
+
+\textbf{张量积}用于将多重线性函数转为另一个线性空间里的线性函数。先从两个线性空间 $V,W$ 的情形开始。
+
+我们希望构造一个新的线性空间 $V\otimes W$，并配备一个双线性映射
+\begin{equation}
+    \otimes:V\times W\longrightarrow V\otimes W,
+    \qquad (v,w)\longmapsto v\otimes w,
+\end{equation}
+使得任意从 $V\times W$ 出发的双线性映射，都能够唯一地通过这个空间改写成线性映射。具体来说，对任意线性空间 $U$ 和任意双线性映射
+\[
+B:V\times W\longrightarrow U,
+\]
+都存在唯一的线性映射
+\[
+\widetilde B:V\otimes W\longrightarrow U,
+\]
+使得
+\begin{equation}
+    B=\widetilde B\circ\otimes,
+    \qquad\text{即}\qquad
+    B(v,w)=\widetilde B(v\otimes w).
+\end{equation}
+这个关系可以用下面的交换图表示：
+\[
+\begin{tikzcd}[column sep=large,row sep=large]
+V\times W \arrow[r,"B"] \arrow[d,"\otimes"'] & U \\
+V\otimes W \arrow[ur,dashed,"\exists!\,\widetilde B"'] &
+\end{tikzcd}
+\]
+所谓\textbf{交换}，就是从左上角的 $(v,w)$ 到右上角的 $U$ 有两条路径：直接用 $B$，或者先送到 $v\otimes w$ 再用 $\widetilde B$；两条路径得到完全相同的结果。虚线上的 $\exists!$ 表示这样的线性映射 $\widetilde B$ 不仅存在，而且是唯一的。这一性质称为张量积的\textbf{普适性质}，它可以看作张量积与基无关的定义。
+
+为了看见这个空间具体长什么样，设
+\[
+\{e_1,\ldots,e_d\}\quad\text{是 }V\text{ 的一组基},
+\qquad
+\{f_1,\ldots,f_r\}\quad\text{是 }W\text{ 的一组基}.
+\]
+那么 $V\otimes W$ 可以取为一个以
+\[
+e_i\otimes f_j,\qquad 1\le i\le d,\quad 1\le j\le r
+\]
+为基的 $dr$ 维线性空间。若
+\[
+v=v^i e_i,\qquad w=w^j f_j,
+\]
+就定义
+\begin{equation}
+    v\otimes w=v^i w^j\,(e_i\otimes f_j).
+\end{equation}
+从这个式子可以直接看出 $(v,w)\mapsto v\otimes w$ 对两个自变量分别是线性的，例如
+\[
+(v_1+v_2)\otimes w=v_1\otimes w+v_2\otimes w,
+\qquad
+v\otimes(w_1+w_2)=v\otimes w_1+v\otimes w_2.
+\]
+注意，$v\otimes w$ 这样的元素称为\textbf{简单张量}（或纯张量）；一般的 $V\otimes W$ 中的元素是若干简单张量的线性组合。
+
+现在再看前面的双线性映射 $B$。因为它是双线性的，只要知道所有
+\[
+B(e_i,f_j)
+\]
+的值，就完全确定了 $B$。因此可以定义线性映射 $\widetilde B$ 满足
+\begin{equation}
+    \widetilde B(e_i\otimes f_j)=B(e_i,f_j),
+\end{equation}
+再由线性性延拓到整个 $V\otimes W$。于是
+\[
+\widetilde B(v\otimes w)
+=v^i w^j\widetilde B(e_i\otimes f_j)
+=v^i w^j B(e_i,f_j)
+=B(v,w),
+\]
+这就具体展示了交换图为什么成立。由于 $e_i\otimes f_j$ 构成一组基，$\widetilde B$ 在这些基向量上的值已经被 $B$ 唯一确定，因此它也是唯一的。
+
+特别地，当 $U=\mathbb{R}$ 时，任意双线性函数
+\[
+T:V\times W\longrightarrow\mathbb{R}
+\]
+都唯一对应于 $V\otimes W$ 上的一个线性函数
+\[
+\widetilde T:V\otimes W\longrightarrow\mathbb{R}.
+\]
+双线性函数等价于张量积空间上的普通线性函数。
+
+完全相同的思想可以推广到多个线性空间。对
+\[
+T:V_1\times\cdots\times V_n\longrightarrow U
+\]
+这样的多重线性映射，都存在唯一线性映射
+\[
+\widetilde T:V_1\otimes\cdots\otimes V_n\longrightarrow U
+\]
+使得
+\[
+T(v_1,\ldots,v_n)
+=\widetilde T(v_1\otimes\cdots\otimes v_n).
+\]
+
+\textbf{张量就是一类多重线性对象}，下一节我们会把这一点精确地写成 $(m,n)$ 型张量的定义。
+\section{(m,n)型张量}
+对一个线性空间$V$，我们可以在它上面定义(m,n)型张量，他是$V^* \times ...\times V^*\times V...\times V \rightarrow \mathbb{R}$上的多重线性函数，其中有$m$个$V^*$,$n$个$V$。
+
+比如说，$V$中的一个矢量是(1,0)张量；$V^*$中的一个元素，也就是$V$上的线性函数，1-form，是(0,1)张量，标量，也就是$\mathbb{R}$上的一个数记作(0,0)张量。
+
+我们也可以用 $V$ 和 $V^*$ 的张量积来生成高阶张量所处的线性空间。由于有限维情形下存在自然同构 $V\cong V^{**}$，所以 $(m,n)$ 型张量空间自然同构于
+\[
+V^{\otimes m}\otimes (V^*)^{\otimes n}.
+\]
+这里的“自然同构”强调：这种对应不需要额外选择一组基。
+\section{张量代数}
+
+对每个非负整数对 $(m,n)$，记
+\[
+\Tspace{m}{n}=V^{\otimes m}\otimes (V^*)^{\otimes n},
+\]
+并约定 $V^{\otimes 0}=(V^*)^{\otimes 0}=\R$。它与 $(m,n)$ 型多重线性函数空间自然同构，其中的元素就是 $(m,n)$ 型张量。
+
+我们已经知道张量积可以用来生成更高阶的张量空间；在此基础上，我们可以预见应该存在一个方法，让两个张量可以生成更高阶的张量（因为张量积是有结合律的）。具体来说，两个张量可以作\textbf{张量积}：
+\[
+\otimes:\Tspace{m}{n}\times \Tspace{p}{q}\longrightarrow \Tspace{m+p}{n+q}.
+\]
+若 $S$ 是 $(m,n)$ 型张量，$T$ 是 $(p,q)$ 型张量，则 $S\otimes T$ 对前 $m$ 个 $V^*$ 输入和前 $n$ 个 $V$ 输入的作用来自 $S$，其余来自 $T$：
+\[
+\begin{aligned}
+&(S\otimes T)(\omega^1,\ldots,\omega^m,\omega^{m+1},\ldots,\omega^{m+p},
+v_1,\ldots,v_n,v_{n+1},\ldots,v_{n+q})\\
+&=S(\omega^1,\ldots,\omega^m,v_1,\ldots,v_n)\,
+T(\omega^{m+1},\ldots,\omega^{m+p},v_{n+1},\ldots,v_{n+q}).
+\end{aligned}
+\]
+一般地，$S\otimes T\neq T\otimes S$；这不和我们前面提到的线性空间的张量积违背，我们前面已经给出了一个例子：线性空间的基经过张量积得到了张量空间里的基。
+
+另一个基本运算是\textbf{缩并}。它把一个上指标和一个下指标配对，得到型数各减一的张量：
+\[
+C:\Tspace{m}{n}\longrightarrow \Tspace{m-1}{n-1}.
+\]
+抽象地说，缩并就是把一个 $V$ 因子和一个 $V^*$ 因子用自然配对
+\[
+\langle \omega,v\rangle=\omega(v)
+\]
+消去。缩并的定义不依赖基的选取。
+
+把所有型数的张量空间直和起来，记
+\[
+\mathcal T(V)=\bigoplus_{m,n\ge 0}\Tspace{m}{n}.
+\]
+在张量积下，$\mathcal T(V)$ 构成一个分次代数，称为 $V$ 上的\textbf{张量代数}。它由 $V$ 与 $V^*$ 生成：$V$ 提供上指标，$V^*$ 提供下指标。
+
+张量积提高型数，缩并降低型数；这是张量运算的两个最基本操作。
+
+\section{分量，指标，爱因斯坦求和约定}
+
+选定 $V$ 的一组基 $\{e_i\}_{i=1}^d$。对偶空间 $V^*$ 有唯一一组对偶基 $\{\eps^i\}$，满足
+\[
+\eps^i(e_j)=\delta^i_j.
+\]
+任意向量和 $1$-形式可写为
+\[
+v=v^i e_i,\qquad \omega=\omega_i\eps^i.
+\]
+这里 $v^i$ 是上指标分量，$\omega_i$ 是下指标分量。
+
+$(m,n)$ 型张量 $T$ 可唯一展开为
+\begin{equation}
+T=T^{i_1\cdots i_m}_{j_1\cdots j_n}\,
+e_{i_1}\otimes\cdots\otimes e_{i_m}\otimes
+\eps^{j_1}\otimes\cdots\otimes \eps^{j_n}.
+\end{equation}
+其分量由对偶基作用给出：
+\begin{equation}
+T^{i_1\cdots i_m}_{j_1\cdots j_n}
+=
+T(\eps^{i_1},\ldots,\eps^{i_m},e_{j_1},\ldots,e_{j_n}).
+\end{equation}
+若 $\omega^a=\omega^a_{i_a}\eps^{i_a}$，$v_b=v_b^{j_b}e_{j_b}$，则
+\begin{equation}
+T(\omega^1,\ldots,\omega^m,v_1,\ldots,v_n)
+=
+T^{i_1\cdots i_m}_{j_1\cdots j_n}
+\omega^1_{i_1}\cdots \omega^m_{i_m}
+v_1^{j_1}\cdots v_n^{j_n}.
+\end{equation}
+这就是用分量计算张量的基本公式。
+
+\textbf{爱因斯坦求和约定}：同一项中，一个上指标和一个下指标用相同字母表示时，自动对该字母从 $1$ 到 $d$ 求和：
+\[
+T^{i_1\cdots i_m}_{j_1\cdots j_n}\omega_{i_1}
+:=
+\sum_{i_1=1}^d T^{i_1\cdots i_m}_{j_1\cdots j_n}\omega_{i_1}.
+\]
+重复指标称为哑指标，可以成对改名；不重复的指标称为自由指标，等式两边必须一致。例如
+\[
+A^i{}_j B^j{}_k=C^i{}_k
+\]
+就是矩阵乘法，而
+\[
+A^i{}_i=\tr A.
+\]
+\textbf{在同一项中，不要让同一字母出现超过两次}。
+
+张量积和缩并的分量形式分别为
+\[
+(S\otimes T)^{i_1\cdots i_m k_1\cdots k_p}_{j_1\cdots j_n l_1\cdots l_q}
+=
+S^{i_1\cdots i_m}_{j_1\cdots j_n}
+T^{k_1\cdots k_p}_{l_1\cdots l_q},
+\]
+\[
+(C T)^{i_1\cdots i_{m-1}}_{j_1\cdots j_{n-1}}
+=
+T^{i_1\cdots i_{r-1} k i_{r+1}\cdots i_m}_{j_1\cdots j_{s-1} k j_{s+1}\cdots j_n}.
+\]
+最后一式中 $k$ 是哑指标。
+
+最后看基变换。设新基为
+\[
+e_{i'}=A^i{}_{i'}e_i.
+\]
+为保证同一个向量 $v=v^{i'}e_{i'}=v^i e_i$，分量必须满足
+\[
+v^{i'}=(A^{-1})^{i'}{}_i v^i,\qquad
+\omega_{i'}=A^i{}_{i'}\omega_i.
+\]
+一般 $(m,n)$ 型张量分量中，每个上指标乘一个 $(A^{-1})$，每个下指标乘一个 $A$：
+\[
+T^{i'_1\cdots i'_m}_{j'_1\cdots j'_n}
+=
+(A^{-1})^{i'_1}{}_{i_1}\cdots (A^{-1})^{i'_m}{}_{i_m}
+A^{j_1}{}_{j'_1}\cdots A^{j_n}{}_{j'_n}
+T^{i_1\cdots i_m}_{j_1\cdots j_n}.
+\]
+因此，上指标与下指标的变换规律相反。正是这种“相反”，保证了张量作为整体对象在基变换下不变。注意：在没有度规时，上、下指标不能随意互换。
+
+\section{度规诱导的同构，指标升降}
+
+度规是 $V$ 上一个对称、非退化的双线性型
+\[
+g:V\times V\to\R,\qquad g(u,v)=g(v,u).
+\]
+按前面的约定，$g$ 是 $(0,2)$ 型张量，其分量为
+\[
+g_{ij}=g(e_i,e_j).
+\]
+非退化意味着矩阵 $(g_{ij})$ 可逆。记其逆矩阵为 $(g^{ij})$，满足
+\[
+g^{ik}g_{kj}=\delta^i_j.
+\]
+这里 $g^{ij}$ 是 $(2,0)$ 型张量的分量。
+
+度规诱导出同构
+\[
+\flat:V\longrightarrow V^*,\qquad v^\flat(w)=g(v,w).
+\]
+非退化保证 $\flat$ 是单射；有限维且 $\dim V=\dim V^*$，所以它是同构。其逆记为
+\[
+\sharp:V^*\longrightarrow V.
+\]
+用分量写出就是
+\[
+(v^\flat)_i=g_{ij}v^j,\qquad
+(\omega^\sharp)^i=g^{ij}\omega_j.
+\]
+这就是\textbf{指标下降}与\textbf{指标上升}。
+
+对任意张量，可以用度规把上指标降下：
+\[
+T_{i_1}{}^{i_2\cdots i_m}{}_{j_1\cdots j_n}
+=
+g_{i_1 k}T^{k i_2\cdots i_m}{}_{j_1\cdots j_n},
+\]
+也可以把下指标升起：
+\[
+T^{i_1\cdots i_m j_1}{}_{j_2\cdots j_n}
+=
+g^{j_1 k}T^{i_1\cdots i_m}{}_{k j_2\cdots j_n}.
+\]
+多个指标同理，每次用一个 $g_{ij}$ 或 $g^{ij}$ 缩并即可。严格说，升降指标前后属于通过 $\flat,\sharp$ 同构起来的不同的张量空间；
+物理中常说“把指标升上去”或“把指标降下来”，指的就是度规诱导的同构 $\flat,\sharp$ 以及相应的分量操作。
+\section{例子}
+\subsection{向量、余向量与缩并}
+
+取 $V=\R^2$，基为 $\{e_1,e_2\}$，对偶基为
+$\{\eps^1,\eps^2\}$。设
+\[
+v=2e_1-e_2,
+\qquad
+\omega=3\eps^1+4\eps^2.
+\]
+因此
+\[
+v^1=2,\quad v^2=-1,
+\qquad
+\omega_1=3,\quad \omega_2=4.
+\]
+
+向量与余向量的自然配对就是一次缩并：
+\[
+\begin{aligned}
+\omega(v)
+&=\omega_i v^i\\
+&=\omega_1v^1+\omega_2v^2\\
+&=3\times2+4\times(-1)\\
+&=2.
+\end{aligned}
+\]
+这里指标 $i$ 同时出现一次上标和一次下标，因此自动求和；
+缩并以后不再留下指标，所得结果是一个标量。
+
+再看一个 $(1,1)$ 型张量 $A$，设
+\[
+A^i{}_j=
+\begin{pmatrix}
+1&2\\
+3&4
+\end{pmatrix}.
+\]
+把它的上、下指标缩并，
+\[
+A^i{}_i
+=A^1{}_1+A^2{}_2
+=1+4
+=5
+=\tr A.
+\]
+因此，矩阵的迹正是 $(1,1)$ 型张量最基本的缩并。
+
+
+\subsection{闵氏度规与指标升降}
+
+取闵氏时空的号差为 $(-,+,+,+)$，并令 $c=1$。在惯性直角坐标中
+\[
+(g_{\mu\nu})
+=
+\begin{pmatrix}
+-1&0&0&0\\
+0&1&0&0\\
+0&0&1&0\\
+0&0&0&1
+\end{pmatrix},
+\qquad
+(g^{\mu\nu})
+=
+\begin{pmatrix}
+-1&0&0&0\\
+0&1&0&0\\
+0&0&1&0\\
+0&0&0&1
+\end{pmatrix}.
+\]
+
+设一个向量的逆变分量为
+\[
+V^\mu=(2,1,-3,4).
+\]
+下降指标意味着与度规缩并：
+\[
+V_\mu=g_{\mu\nu}V^\nu.
+\]
+逐个分量计算，
+\[
+\begin{aligned}
+V_0&=g_{00}V^0=-1\times2=-2,\\
+V_1&=g_{11}V^1=1,\\
+V_2&=g_{22}V^2=-3,\\
+V_3&=g_{33}V^3=4.
+\end{aligned}
+\]
+因此
+\[
+V_\mu=(-2,1,-3,4).
+\]
+在这个坐标系和号差约定下，下降指标使时间分量变号，而空间分量不变。
+
+反过来，若一个余向量为
+\[
+\omega_\mu=(5,-2,1,3),
+\]
+则升指标为
+\[
+\omega^\mu=g^{\mu\nu}\omega_\nu,
+\]
+所以
+\[
+\omega^\mu=(-5,-2,1,3).
+\]
+
+例如，向量与自身的闵氏内积为
+\[
+\begin{aligned}
+V_\mu V^\mu
+&=g_{\mu\nu}V^\mu V^\nu\\
+&=-(V^0)^2+(V^1)^2+(V^2)^2+(V^3)^2\\
+&=-4+1+9+16\\
+&=22.
+\end{aligned}
+\]
+
+\subsection{哑指标改名与化简}
+
+哑指标只是求和变量，它使用什么字母并没有意义，因此可以成对改名。
+例如
+\[
+A^i{}_jB^j{}_k-C^i{}_mB^m{}_k
+\]
+中，$i,k$ 是自由指标，而第一项中的 $j$ 和第二项中的 $m$
+分别是哑指标。
+
+把第二项中的哑指标 $m$ 改名为 $j$：
+\[
+C^i{}_mB^m{}_k
+=
+C^i{}_jB^j{}_k.
+\]
+于是原式可以写成
+\[
+\begin{aligned}
+A^i{}_jB^j{}_k-C^i{}_mB^m{}_k
+&=A^i{}_jB^j{}_k-C^i{}_jB^j{}_k\\
+&=(A^i{}_j-C^i{}_j)B^j{}_k.
+\end{aligned}
+\]
+所以在指标计算中，如果两个求和项看起来不能直接合并，
+首先检查它们是否只是使用了不同的哑指标。
+
+哑指标改名还常与张量的对称性一起使用。例如度规满足
+\[
+g_{ij}=g_{ji}.
+\]
+因此
+\[
+g_{ij}A^iB^j
+=
+g_{ji}A^iB^j.
+\]
+右边的 $i,j$ 都是哑指标，可以同时交换名称 $i\leftrightarrow j$：
+\[
+g_{ji}A^iB^j
+=
+g_{ij}A^jB^i
+=
+g_{ij}B^iA^j.
+\]
+从而
+\[
+g_{ij}A^iB^j
+=
+g_{ij}B^iA^j,
+\]
+这正是
+\[
+g(A,B)=g(B,A)
+\]
+在指标记号下的表现。
+
+需要注意：只有哑指标可以任意改名；自由指标必须在等式两边保持一致。
+改名时也不能让新的指标名称与同一项中已有的其他指标发生冲突。
+\end{document}

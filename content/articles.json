@@ -17,5 +17,13 @@
     "tags": ["物理"],
     "excerpt": "从复线性空间与 Dirac 符号出发，讨论量子态、测量与概率，再走向薛定谔方程和时间演化。面向学过线性代数与微积分的读者。",
     "bodyFile": "quantum-mechanics-introduction.tex"
+  },
+  {
+    "slug": "tensors-for-physics",
+    "title": "张量：从线性映射到指标计算",
+    "author": "Kerf",
+    "tags": ["数学", "物理"],
+    "excerpt": "从线性空间与对偶空间出发，理解张量积、张量的分量与缩并，再通过度规和具体例子掌握指标升降与计算。",
+    "bodyFile": "tensors-for-physics.tex"
   }
 ]

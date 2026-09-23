@@ -21,17 +21,30 @@ export function convertLatexArticle(source) {
   for (const m of source.matchAll(/\\newcommand\{(\\\w+)\}(?:\[\d\])?/g)) {
     if (m[1] !== '\\important') macros[m[1]] = argument(source, m.index + m[0].length).value;
   }
+  for (const m of source.matchAll(/\\DeclareMathOperator\{(\\\w+)\}\{([^}]+)\}/g)) macros[m[1]] = `\\operatorname{${m[2]}}`;
   const document = source.match(/\\begin\{document\}([\s\S]*?)\\end\{document\}/);
   if (!document) throw new Error('Missing LaTeX document');
-  const input = document[1].replace(/(?<!\\)%[^\n]*/g, '').replace(/\\maketitle|\\vspace\{[^}]*\}|\\Needspace\{[^}]*\}/g, '').trim();
+  const input = document[1].replace(/(?<!\\)%[^\n]*/g, '').replace(/\\maketitle|\\vspace\{[^}]*\}|\\Needspace\{[^}]*\}|\\thispagestyle\{[^}]*\}|\\noindent/g, '')
+    .replace(/\\begin\{center\}\s*\{\\LARGE\\bfseries[^{}]*\\par\}\s*\\end\{center\}/g, '').trim();
   const labels = new Map(), sections = [], blocks = [];
   let section = 0, subsection = 0, equation = 0, mathCount = 0, referenceCount = 0, proseText = '';
-  const math = (tex, display) => {
-    mathCount++;
-    return katex.renderToString(tex.replace(/\\\r?\n/g, '\\ '), {
+  const renderMath = (tex, display) => katex.renderToString(tex.replace(/\\\r?\n/g, '\\ '), {
       displayMode: display, macros: { ...macros }, throwOnError: true, trust: false,
       strict: code => code === 'unicodeTextInMathMode' ? 'ignore' : 'error'
     });
+  const math = (tex, display) => {
+    mathCount++;
+    if (tex.includes('\\begin{tikzcd}')) {
+      // This diagram has a dedicated responsive web layout; never silently drop TikZ.
+      const expected = String.raw`\begin{tikzcd}[column sep=large,row sep=large]
+V\times W \arrow[r,"B"] \arrow[d,"\otimes"'] & U \\
+V\otimes W \arrow[ur,dashed,"\exists!\,\widetilde B"'] &
+\end{tikzcd}`;
+      if (tex.replace(/\s/g, '') !== expected.replace(/\s/g, '')) throw new Error('Unsupported commutative diagram: provide a faithful web layout first');
+      const label = (name, formula) => `<span class="diagram-${name}">${renderMath(formula, false)}</span>`;
+      return `<figure class="tensor-diagram" aria-label="张量积的普适性质交换图"><div class="tensor-diagram-canvas"><svg viewBox="0 0 480 220" fill="none" aria-hidden="true"><defs><marker id="tensor-map-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M1 1L9 5L1 9" stroke="currentColor" stroke-width="1.4"/></marker></defs><g stroke="currentColor" stroke-width="1.6" marker-end="url(#tensor-map-arrow)"><path d="M150 38H365"/><path d="M90 63V165"/><path d="M155 178L363 58" stroke-dasharray="6 5"/></g></svg>${label('source',String.raw`V\times W`)}${label('target','U')}${label('product',String.raw`V\otimes W`)}${label('direct','B')}${label('tensor',String.raw`\otimes`)}${label('unique',String.raw`\exists!\,\widetilde B`)}</div><figcaption>直接作用与经过张量积空间的两条路径，得到相同的结果。</figcaption></figure>`;
+    }
+    return renderMath(tex, display);
   };
   const numbered = (tex, align) => {
     // Split only top-level align rows, never matrix rows.
@@ -59,21 +72,38 @@ export function convertLatexArticle(source) {
     return `<div class="article-equation">${ids.map(id => `<span id="${id}" class="equation-anchor"></span>`).join('')}${math(align ? `\\begin{align}${tagged}\\end{align}` : tagged, true)}</div>`;
   };
   let i = 0, textStart = 0;
+  const lists = [];
   const flush = end => { if (input.slice(textStart, end).trim()) blocks.push({ type: 'text', value: input.slice(textStart, end) }); };
   while (i < input.length) {
     const rest = input.slice(i);
     const heading = rest.match(/^\\(section|subsection)\{/);
     const env = rest.match(/^\\begin\{(equation|align|abstract)\}/);
-    if (heading) {
+    const list = rest.match(/^\\(begin|end)\{(itemize|enumerate)\}/);
+    if (list || /^\\item\b/.test(rest)) {
+      flush(i);
+      if (list?.[1] === 'begin') {
+        const tag = list[2] === 'itemize' ? 'ul' : 'ol';
+        lists.push({tag, item:false}); blocks.push({type:'html',value:`<${tag} class="article-list">`});
+      } else if (list) {
+        const current = lists.pop();
+        if (!current || current.tag !== (list[2] === 'itemize' ? 'ul' : 'ol')) throw new Error('Mismatched list environment');
+        blocks.push({type:'html',value:`${current.item ? '</li>' : ''}</${current.tag}>`});
+      } else {
+        const current = lists.at(-1);
+        if (!current) throw new Error('List item outside list');
+        blocks.push({type:'html',value:`${current.item ? '</li>' : ''}<li>`}); current.item = true;
+      }
+      i += list ? list[0].length : 5; textStart = i;
+    } else if (heading) {
       flush(i);
       const arg = argument(input, i + heading[0].length - 1);
       if (heading[1] === 'section') { section++; subsection = 0; equation = 0; sections.push({ id: `section-${section}`, title: arg.value, number: section }); }
       else subsection++;
       blocks.push({type:'heading', level:heading[1] === 'section' ? 2 : 3, id:subsection ? `section-${section}-${subsection}` : `section-${section}`, value:arg.value, number:subsection ? `${section}.${subsection}` : `${section}`});
       i = arg.end; textStart = i;
-    } else if (env || rest.startsWith('\\[')) {
+    } else if (env || rest.startsWith('\\[') || rest.startsWith('$$')) {
       flush(i);
-      const opener = env ? env[0] : '\\[', closer = env ? `\\end{${env[1]}}` : '\\]';
+      const opener = env ? env[0] : rest.startsWith('$$') ? '$$' : '\\[', closer = env ? `\\end{${env[1]}}` : opener === '$$' ? '$$' : '\\]';
       const end = input.indexOf(closer, i + opener.length);
       if (end < 0) throw new Error(`Unclosed ${opener}`);
       const value = input.slice(i + opener.length, end);
@@ -83,14 +113,16 @@ export function convertLatexArticle(source) {
     } else i++;
   }
   flush(i);
+  if (lists.length) throw new Error('Unclosed list environment');
   const inline = text => {
     let result = '', cursor = 0;
     while (cursor < text.length) {
-      if (text[cursor] === '$') {
-        let end = cursor + 1;
-        while (end < text.length && !(text[end] === '$' && text[end - 1] !== '\\')) end++;
-        if (end === text.length) throw new Error('Unclosed inline math');
-        result += math(text.slice(cursor + 1, end), false); cursor = end + 1;
+      if (text[cursor] === '$' || text.slice(cursor, cursor + 2) === '\\(') {
+        const parens = text[cursor] === '\\';
+        const start = cursor + (parens ? 2 : 1);
+        const end = text.indexOf(parens ? '\\)' : '$', start);
+        if (end < 0) throw new Error('Unclosed inline math');
+        result += math(text.slice(start, end), false); cursor = end + (parens ? 2 : 1);
       } else if (text[cursor] === '\\') {
         const command = text.slice(cursor).match(/^\\(textbf|important|eqref)\{/);
         if (!command) throw new Error(`Unsupported prose command: ${text.slice(cursor, cursor + 70)}`);
@@ -119,7 +151,7 @@ export function convertLatexArticle(source) {
     return paragraphs(block.value);
   }).join('\n');
   const toc = `<details class="article-toc" open><summary>目录 <span>${sections.length} 个章节</span></summary><ol>${sections.map(s => `<li><a href="#${s.id}">${escape(s.title)}</a></li>`).join('')}</ol></details>`;
-  body = body.replace('</aside>', `</aside>\n${toc}`);
+  body = body.includes('</aside>') ? body.replace('</aside>', `</aside>\n${toc}`) : body.replace('<h2 ', `${toc}\n<h2 `);
   const wordCount = Array.from(proseText.replace(/\s/g, '')).length;
   return { body, wordCount, stats: { sections:sections.length, equations: (body.match(/class="equation-anchor"/g) || []).length, mathCount, referenceCount } };
 }

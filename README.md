@@ -54,6 +54,8 @@ projects/moon-phase/       独立月相实验室
 
 ## 公式
 
+《张量：从线性映射到指标计算》保存在 `content/tensors-for-physics.tex`，标签为“数学”“物理”。网页忽略纸张、页眉页脚和字体设置，使用本站阅读样式；支持本文的列表、`\(...\)`、`$$...$$` 和数学算符声明。张量积普适性质的交换图有对应的响应式网页版本；其他 TikZ 图需要单独转换，不能直接导入。
+
 《量子力学入门：从线性空间到时间演化》的源文件位于 `content/quantum-mechanics-introduction.tex`，标签为“物理”。修改源文件后运行相同的生成脚本即可更新网页。LaTeX 文章在生成时完成公式排版，不依赖读者浏览器运行脚本；章节目录、公式编号和 `\eqref` 跳转自动生成，字数统计只计算正文文字。
 
 `scripts/latex-article.mjs` 支持本文使用的 `section`、`subsection`、`abstract`、`textbf`、`important`、行内公式、独立公式、`equation`、`align`、`label` 与 `eqref`，并读取数学宏定义。它不是通用 LaTeX 编译器；遇到不支持的正文命令、公式错误或无法解析的引用时，生成会报错，需先处理后发布。

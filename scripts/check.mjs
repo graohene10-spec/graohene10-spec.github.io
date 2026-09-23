@@ -34,7 +34,8 @@ for(const article of catalog.filter(a=>a.bodyFile.endsWith('.tex'))){
  const source=fs.readFileSync(path.join(root,'content',article.bodyFile),'utf8');
  const converted=convertLatexArticle(source);
  const document=source.split('\\begin{document}')[1].split('\\end{document}')[0];
- const expectedMath=(document.match(/\$/g)||[]).length/2+(document.match(/\\\[/g)||[]).length+(document.match(/\\begin\{(?:equation|align)\}/g)||[]).length;
+ const displayDollars=(document.match(/\$\$[\s\S]*?\$\$/g)||[]).length;
+ const expectedMath=(document.replace(/\$\$[\s\S]*?\$\$/g,'').match(/\$/g)||[]).length/2+displayDollars+(document.match(/\\\[/g)||[]).length+(document.match(/\\\(/g)||[]).length+(document.match(/\\begin\{(?:equation|align)\}/g)||[]).length;
  assert.equal(converted.stats.mathCount,expectedMath,'Every source formula must render');
  assert.equal(converted.stats.sections,(document.match(/\\section\{/g)||[]).length);
  assert.equal(converted.stats.referenceCount,(document.match(/\\eqref\{/g)||[]).length);
@@ -42,6 +43,12 @@ for(const article of catalog.filter(a=>a.bodyFile.endsWith('.tex'))){
  assert.equal(ids.length,new Set(ids).size,'Unique section and equation anchors');
  for(const [,target] of converted.body.matchAll(/href="#([^"]+)"/g))assert.ok(ids.includes(target),`Missing anchor ${target}`);
  assert.ok(!converted.body.includes('katex-error'));
- assert.match(converted.body,/本文到此只保留复合空间的基本结构/);
+ if(article.slug==='quantum-mechanics-introduction')assert.match(converted.body,/本文到此只保留复合空间的基本结构/);
+ if(article.slug==='tensors-for-physics'){
+  assert.match(converted.body,/改名时也不能让新的指标名称与同一项中已有的其他指标发生冲突/);
+  assert.equal((converted.body.match(/<li>/g)||[]).length,converted.stats.sections+4,'All source list items and TOC entries');
+  assert.match(converted.body,/class="tensor-diagram"/);
+  assert.ok(!converted.body.includes('fancyhead'));
+ }
  console.log(`Passed: ${article.slug}: ${JSON.stringify(converted.stats)}`);
 }
