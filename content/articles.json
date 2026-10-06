@@ -25,5 +25,13 @@
     "tags": ["数学", "物理"],
     "excerpt": "从线性空间与对偶空间出发，理解张量积、张量的分量与缩并，再通过度规和具体例子掌握指标升降与计算。",
     "bodyFile": "tensors-for-physics.tex"
+  },
+  {
+    "slug": "pdf-copilot",
+    "title": "PDF Copilot：把 AI 放在 PDF 阅读旁边",
+    "author": "Kerf",
+    "tags": ["工具", "开源"],
+    "excerpt": "一个轻量的 Edge / Chrome PDF 阅读扩展：用侧栏或临时窗口提问，选中文字或框选图表发送给模型，并支持公式显示与本机 Codex 登录。",
+    "bodyFile": "pdf-copilot.html"
   }
 ]
